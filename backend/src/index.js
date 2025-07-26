@@ -29,12 +29,12 @@ app.use("/api/message", messageRoutes);
 if (process.env.NODE_ENV === "production") {
 	app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-	app.use("*", (_, res) => {
+	app.use("/{*any}", (req, res) => {
 		res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
 	});
 }
 
 server.listen(PORT, () => {
-	console.log(`listening to port ${PORT}`);
+	console.log(`http://localhost:${PORT}`);
 	connectDB();
 });

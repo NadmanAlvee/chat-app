@@ -25,7 +25,7 @@ export const App = () => {
 	if (isCheckingAuth && !authUser) {
 		return (
 			<div className="flex items-center justify-center h-screen">
-				<LoaderCircle className="siza-10 animate-spin" />
+				<LoaderCircle className="size-10 animate-spin" />
 			</div>
 		);
 	}
