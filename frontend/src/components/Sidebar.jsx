@@ -40,7 +40,7 @@ const Sidebar = () => {
 						<span className="text-sm">Show online only</span>
 					</label>
 					<span className="text-xs text-zinc-500">
-						({onlineUsers.length - 1} online)
+						({onlineUsers.length - 1 > 0 ? onlineUsers.length - 1 : 0} online)
 					</span>
 				</div>
 			</div>
@@ -73,7 +73,7 @@ const Sidebar = () => {
 							) : (
 								<span
 									className="absolute bottom-0 right-0 size-3 bg-gray-400 
-                                    rounded-full"
+                                    rounded-full ring-2 ring-zinc-800"
 								/>
 							)}
 						</div>

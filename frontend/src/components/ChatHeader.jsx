@@ -26,7 +26,7 @@ const ChatHeader = () => {
 						) : (
 							<span
 								className="absolute bottom-0 right-0 size-3 bg-gray-400 
-                                    rounded-full"
+                                    rounded-full ring-2 ring-zinc-800"
 							/>
 						)}
 					</div>
