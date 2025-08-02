@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
-import { Users } from "lucide-react";
+import { UserPlus, X } from "lucide-react";
 
 const Sidebar = () => {
 	const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } =
@@ -19,17 +19,158 @@ const Sidebar = () => {
 		? users.filter((user) => onlineUsers.includes(user._id))
 		: users;
 
+	const [searchDivVisible, setSearchDivVisible] = useState(false);
+
+	const [searchedUsers, setSearchedUsers] = useState([]);
+
+	const handleSearchInput = (e) => {
+		const searchTerm = e.target.value.trim();
+		if (searchTerm === "") {
+			setSearchedUsers([]);
+			return;
+		} else {
+			setSearchedUsers(
+				users.filter((user) => user.fullname.toLowerCase().includes(searchTerm))
+			);
+		}
+	};
+
+	const [selectedUsersFromSearch, setSelectedUsersFromSearch] = useState([]);
+
+	const handleSelectedUsersFromSearch = (user) => {
+		selectedUsersFromSearch.includes(user)
+			? setSelectedUsersFromSearch(
+					selectedUsersFromSearch.filter((u) => u != user)
+			  )
+			: setSelectedUsersFromSearch([...selectedUsersFromSearch, user]);
+	};
+
+	const handleActionFromSearchResult = () => {
+		console.log({ selectedUsersFromSearch });
+
+		if (selectedUsersFromSearch.length === 1) {
+			setSelectedUser(selectedUsersFromSearch[0]);
+			setSelectedUsersFromSearch([]);
+			setSearchDivVisible(false);
+		}
+	};
+
 	if (isUsersLoading) return <SidebarSkeleton />;
 
 	return (
 		<aside className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
-			<div className="border-b border-base-300 w-full p-5">
-				<div className="flex items-center gap-2">
-					<Users className="size-6" />
-					<span className="font-medium hidden lg:block">Contacts</span>
+			{/* Search - New Message */}
+			<button
+				className={`w-full p-5 flex items-center gap-3 hover:bg-base-300 transition-colors ${
+					searchDivVisible ? "bg-primary text-primary-content" : ""
+				}`}
+				onClick={() => {
+					setSelectedUser(null);
+					setSearchDivVisible(!searchDivVisible);
+				}}
+			>
+				<div className="flex items-center gap-2 cursor-pointer justify-center">
+					<UserPlus className="size-6" />
+					<span className="font-medium hidden lg:block">New Message</span>
 				</div>
-				{/* show online users toggle */}
-				<div className="mt-3 hidden lg:flex items-center gap-2">
+			</button>
+
+			{/* Search Input */}
+			{searchDivVisible && (
+				<div
+					className="fixed bg-base-300 w-full max-w-4xl text-center z-50 rounded-lg"
+					style={{
+						top: "50%",
+						left: "50%",
+						transform: "translate(-50%, -50%)",
+					}}
+				>
+					<button>
+						<X
+							className="absolute top-2 right-2 size-5 text-red-500"
+							onClick={() => setSearchDivVisible(false)}
+						/>
+					</button>
+					{selectedUsersFromSearch.length > 0 && (
+						<div className="absolute bottom-0 w-full text-center">
+							<button
+								className="m-5 left-2/4 btn btn-outline btn-primary"
+								onClick={handleActionFromSearchResult}
+							>
+								{selectedUsersFromSearch.length === 1
+									? "Send Message"
+									: "Create Group Chat"}
+							</button>
+						</div>
+					)}
+
+					<input
+						type="text"
+						placeholder="Search"
+						className="input input-bordered w-11/12 h-10 rounded-r-none m-5"
+						onChange={handleSearchInput}
+					/>
+					{/* search results div */}
+					<div
+						className="flex flex-col min-h-96 overflow-y-auto pl-10 gap-3"
+						style={{ maxHeight: "70vh" }}
+					>
+						{searchedUsers.length > 0 ? (
+							searchedUsers.map((searchedUser) => (
+								<button
+									key={searchedUser._id}
+									onClick={() => handleSelectedUsersFromSearch(searchedUser)}
+									className={`max-w-80 p-3 flex items-center gap-3
+												hover:border-2
+                                 				hover:rounded-xl
+												hover:border-primary
+												transition-colors ${
+													selectedUsersFromSearch.includes(searchedUser)
+														? "bg-primary text-primary-content"
+														: ""
+												}`}
+								>
+									<div className="relative">
+										<img
+											src={searchedUser.profilePic || "/avatar.png"}
+											alt={searchedUser.fullname}
+											className="size-12 object-cover rounded-full"
+										/>
+										{onlineUsers?.includes(searchedUser._id) ? (
+											<span
+												className="absolute bottom-0 right-0 size-3 bg-green-500 
+                                    rounded-full ring-2 ring-zinc-900"
+											/>
+										) : (
+											<span
+												className="absolute bottom-0 right-0 size-3 bg-gray-400 
+                                    rounded-full ring-2 ring-zinc-800"
+											/>
+										)}
+									</div>
+
+									<div className="block text-left min-w-0">
+										<div className="font-medium truncate">
+											{searchedUser.fullname}
+										</div>
+										<div className="text-sm ">
+											{onlineUsers.includes(searchedUser._id)
+												? "Online"
+												: "Offline"}
+										</div>
+									</div>
+								</button>
+							))
+						) : (
+							<span className="block">No User Found</span>
+						)}
+					</div>
+				</div>
+			)}
+
+			{/* show online users toggle */}
+			<div className="hidden lg:flex  border-b border-base-300 w-full p-5">
+				<div className="items-center gap-2">
 					<label className="cursor-pointer flex items-center gap-2">
 						<input
 							type="checkbox"
@@ -44,11 +185,14 @@ const Sidebar = () => {
 					</span>
 				</div>
 			</div>
-			<div className="overflow-y-auto w-full py-3">
+			<div className="overflow-y-auto w-full">
 				{filteredUsers.map((user) => (
 					<button
 						key={user._id}
-						onClick={() => setSelectedUser(user)}
+						onClick={() => {
+							setSearchDivVisible(false);
+							setSelectedUser(user);
+						}}
 						className={`
                                 w-full p-3 flex items-center gap-3
                                 hover:bg-base-300 transition-colors
