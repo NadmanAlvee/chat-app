@@ -10,6 +10,9 @@ export const useChatStore = create((set, get) => ({
 	selectedConversation: null,
 	isConversationsLoading: false,
 	isMessagesLoading: false,
+	isCreatingNewConversation: false,
+	setIsCreatingNewConversation: (value) =>
+		set({ isCreatingNewConversation: value }),
 
 	getUsers: async () => {
 		set({ isConversationsLoading: true });
@@ -50,43 +53,48 @@ export const useChatStore = create((set, get) => ({
 	sendMessage: async (messageData) => {
 		try {
 			const { selectedConversation, messages } = get();
-			const { authUser } = useAuthStore.getState();
-			const selectedUser = selectedConversation?.participants?.find(
-				(user) => user._id.toString() !== authUser._id.toString()
-			);
-			const response = await axiosInstance.post(
-				`/message/send/${selectedConversation._id}/${selectedUser._id}`,
-				messageData
-			);
-			set({ messages: [...messages, response.data] });
+			if (selectedConversation) {
+				const response = await axiosInstance.post(
+					`/message/send/${selectedConversation._id}`,
+					messageData
+				);
+				set({ messages: [...messages, response.data] });
+			} else throw new Error("Error sending message");
 		} catch (error) {
-			toast.error(error.response.data.message);
+			toast.error(error.response?.data?.message || error.message);
 		}
 	},
 
 	subscribeToMessage: () => {
-		const { selectedConversation } = get();
-		const { authUser } = useAuthStore.getState();
-		const selectedUser = selectedConversation?.participants?.find(
-			(user) => user._id.toString() !== authUser._id.toString()
-		);
-		if (!selectedUser) return;
-		const socket = useAuthStore.getState().socket;
+		try {
+			const { selectedConversation } = get();
+			const socket = useAuthStore.getState().socket;
 
-		// optimize later
-		socket.on("newMessage", (newMessage) => {
-			if (newMessage?.senderId != selectedUser?._id) return;
-			set({
-				messages: [...get().messages, newMessage],
-			});
-		});
+			if (!socket || !selectedConversation?._id) return;
+
+			socket.off("newMessage"); // Prevent duplicate listeners
+
+			if (selectedConversation) {
+				// send join room event
+				socket.emit("joinRoom", selectedConversation._id);
+				// listen for message
+				socket.on("newMessage", (newMessage) => {
+					if (newMessage?.conversationId != selectedConversation?._id) return;
+					set({
+						messages: [...get().messages, newMessage],
+					});
+				});
+			} else throw new Error("Unknown error occured");
+		} catch (error) {
+			toast.error(error.response?.data?.message || error.message);
+		}
 	},
 
 	unsubscribeFromMessage: () => {
 		const socket = useAuthStore.getState().socket;
-		socket.off("newMessage");
+		if (socket) socket.off("newMessage");
 	},
 
-	setSelectedConversation: (conversationId) =>
-		set({ selectedConversation: conversationId }),
+	setSelectedConversation: (conversation) =>
+		set({ selectedConversation: conversation }),
 }));

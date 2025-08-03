@@ -26,6 +26,11 @@ io.on("connection", (socket) => {
 
 	io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
+	socket.on("joinRoom", (conversationId) => {
+		socket.join(conversationId);
+		console.log(`User ${socket.id} joined room ${conversationId}`);
+	});
+
 	socket.on("disconnect", () => {
 		console.log("A user disconnected ", socket.id);
 		delete userSocketMap[userID];

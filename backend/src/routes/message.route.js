@@ -6,6 +6,7 @@ import {
 	getMessages,
 	sendMessage,
 	getOrCreateConversation,
+	getOrCreateGroupchat,
 } from "../controllers/message.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
@@ -20,10 +21,13 @@ router.get("/getUsers", protectRoute, getAllUsers);
 // get or create a 1 to 1 conversation
 router.get("/conversation/:id", protectRoute, getOrCreateConversation);
 
+// get or create a 1 to 1 conversation
+router.post("/conversation/group", protectRoute, getOrCreateGroupchat);
+
 // get messages
 router.get("/:conversationId", protectRoute, getMessages);
 
 // send messages
-router.post("/send/:conversationId/:recieverId", protectRoute, sendMessage);
+router.post("/send/:conversationId", protectRoute, sendMessage);
 
 export default router;

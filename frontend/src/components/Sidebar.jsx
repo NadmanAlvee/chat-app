@@ -14,6 +14,8 @@ const Sidebar = () => {
 		selectedConversation,
 		setSelectedConversation,
 		isConversationsLoading,
+		isCreatingNewConversation,
+		setIsCreatingNewConversation,
 	} = useChatStore();
 
 	const { onlineUsers, authUser } = useAuthStore();
@@ -22,7 +24,7 @@ const Sidebar = () => {
 	useEffect(() => {
 		getUsers();
 		getConversations();
-	}, [getUsers, getConversations]);
+	}, [getUsers, getConversations, isCreatingNewConversation]);
 
 	const [searchDivVisible, setSearchDivVisible] = useState(false);
 
@@ -51,17 +53,27 @@ const Sidebar = () => {
 	};
 
 	const handleActionFromSearchResult = async () => {
+		// create or select 1 to 1 chat
 		if (selectedUsersFromSearch.length === 1) {
+			await setIsCreatingNewConversation(true);
 			const { data } = await axiosInstance.get(
 				`/message/conversation/${selectedUsersFromSearch[0]._id}`
 			);
 			setSelectedConversation(data);
 			setSelectedUsersFromSearch([]);
 			setSearchDivVisible(false);
+			await setIsCreatingNewConversation(false);
 		}
+		// create or select group
 		if (selectedUsersFromSearch.length > 1) {
-			// start here
-			// group functionality
+			await setIsCreatingNewConversation(true);
+			const { data } = await axiosInstance.post("/message/conversation/group", {
+				selectedUsers: selectedUsersFromSearch,
+			});
+			setSelectedConversation(data);
+			setSelectedUsersFromSearch([]);
+			setSearchDivVisible(false);
+			await setIsCreatingNewConversation(false);
 		}
 	};
 

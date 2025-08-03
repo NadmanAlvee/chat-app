@@ -39,20 +39,10 @@ export const getConversationsForSidebar = async (req, res) => {
 export const getMessages = async (req, res) => {
 	try {
 		const { conversationId } = req.params;
-		const senderId = req.user._id;
-		const conversation = await Conversation.findById(conversationId).populate(
-			"participants"
+		const messages = await Message.find({ conversationId }).populate(
+			"senderId",
+			"-password"
 		);
-		const otherUserId = conversation?.participants?.find(
-			(user) => user._id.toString() !== senderId.toString()
-		);
-
-		const messages = await Message.find({
-			$or: [
-				{ senderId: senderId, conversationId: conversationId },
-				{ senderId: otherUserId, conversationId: conversationId },
-			],
-		});
 
 		res.status(200).json(messages);
 	} catch (error) {
@@ -64,7 +54,7 @@ export const getMessages = async (req, res) => {
 export const sendMessage = async (req, res) => {
 	try {
 		const { text, image } = req.body;
-		const { conversationId, recieverId } = req.params;
+		const { conversationId } = req.params;
 		const senderId = req.user._id;
 
 		let imageUrl;
@@ -82,11 +72,13 @@ export const sendMessage = async (req, res) => {
 		});
 
 		await newMessage.save();
+		await newMessage.populate("senderId", "-password");
 
-		// if user is online, emit new message
-		const recieverSocketId = getRecieverSocketId(recieverId);
-		if (recieverSocketId) {
-			io.to(recieverSocketId).emit("newMessage", newMessage);
+		console.log({ newMessage }); // debug
+
+		// emit new message
+		if (conversationId) {
+			io.to(conversationId).emit("newMessage", newMessage);
 		}
 
 		res.status(201).json(newMessage);
@@ -120,6 +112,38 @@ export const getOrCreateConversation = async (req, res) => {
 		}
 	} catch (error) {
 		console.log("Error in getOrCreateConversation controller", error.message);
+		res.status(500).json({ message: "Internal Server Error" });
+	}
+};
+
+export const getOrCreateGroupchat = async (req, res) => {
+	try {
+		const loggedInUserId = req.user._id;
+		const { selectedUsers } = req.body;
+
+		const conversation = await Conversation.findOne({
+			isGroup: true,
+			participants: {
+				$all: [...selectedUsers, loggedInUserId],
+				$size: selectedUsers.length + 1,
+			},
+		}).populate("participants");
+
+		if (!conversation) {
+			let newConversation = await Conversation.create({
+				isGroup: true,
+				admins: [loggedInUserId],
+				participants: [...selectedUsers, loggedInUserId],
+			});
+
+			newConversation = await newConversation.populate("participants");
+
+			return res.status(201).json(newConversation);
+		} else {
+			return res.status(200).json(conversation);
+		}
+	} catch (error) {
+		console.log("Error in getOrCreateGroupchat controller", error.message);
 		res.status(500).json({ message: "Internal Server Error" });
 	}
 };

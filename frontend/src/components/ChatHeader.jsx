@@ -8,6 +8,13 @@ const ChatHeader = () => {
 	const selectedUser = selectedConversation?.participants.find(
 		(user) => user._id.toString() !== authUser._id.toString()
 	);
+	let conversationPicture = selectedConversation.isGroup
+		? selectedConversation.groupPicture || "/group-avatar.png"
+		: selectedUser.profilePic || "/avatar.png";
+
+	let conversationName = selectedConversation.isGroup
+		? selectedConversation.name || "Unnamed Group"
+		: selectedUser.fullname || "/avatar.png";
 
 	return (
 		<div className="p-2.5 border-b border-base-300">
@@ -16,32 +23,34 @@ const ChatHeader = () => {
 					{/* Avatar */}
 					<div className="avatar">
 						<div className="size-10 rounded-full relative">
-							<img
-								src={selectedUser.profilePic || "/avatar.png"}
-								alt={selectedUser.fullname}
-							/>
+							<img src={conversationPicture} alt={conversationName} />
 						</div>
-						{onlineUsers.includes(selectedUser._id) ? (
-							<span
-								className="absolute bottom-0 right-0 size-3 bg-green-500 
+						{!selectedConversation.isGroup &&
+							(onlineUsers.includes(selectedUser._id) ? (
+								<span
+									className="absolute bottom-0 right-0 size-3 bg-green-500 
                                     rounded-full ring-2 ring-zinc-900"
-							/>
-						) : (
-							<span
-								className="absolute bottom-0 right-0 size-3 bg-gray-400 
+								/>
+							) : (
+								<span
+									className="absolute bottom-0 right-0 size-3 bg-gray-400 
                                     rounded-full ring-2 ring-zinc-800"
-							/>
-						)}
+								/>
+							))}
 					</div>
 
 					{/* User info */}
 					<div>
-						<h3 className="font-medium">{selectedUser.fullname}</h3>
-						<p className="text-sm text-base-content/70">
-							{onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"}
-						</p>
+						<h3 className="font-medium">{conversationName}</h3>
+						{!selectedConversation.isGroup && (
+							<p className="text-sm text-base-content/70">
+								{onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"}
+							</p>
+						)}
 					</div>
 				</div>
+				{/* Group information */}
+				{/* Start Here */}
 
 				{/* Close button */}
 				<button onClick={() => setSelectedConversation(null)}>
