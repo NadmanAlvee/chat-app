@@ -10,7 +10,7 @@ const ChatContainer = () => {
 	const {
 		messages,
 		getMessages,
-		selectedUser,
+		selectedConversation,
 		isMessagesLoading,
 		subscribeToMessage,
 		unsubscribeFromMessage,
@@ -20,7 +20,7 @@ const ChatContainer = () => {
 	const messageDivRef = useRef(null);
 
 	useEffect(() => {
-		getMessages(selectedUser._id);
+		getMessages(selectedConversation._id);
 
 		subscribeToMessage();
 
@@ -28,7 +28,7 @@ const ChatContainer = () => {
 			unsubscribeFromMessage();
 		};
 	}, [
-		selectedUser._id,
+		selectedConversation._id,
 		getMessages,
 		subscribeToMessage,
 		unsubscribeFromMessage,
@@ -39,6 +39,12 @@ const ChatContainer = () => {
 			messageDivRef.current.scrollTo(0, messageDivRef.current.scrollHeight);
 		}
 	}, [messages]);
+
+	// conversation image and name
+	const otherUser = selectedConversation?.participants?.find(
+		(user) => user._id.toString() !== authUser._id.toString()
+	);
+	const otherUserProfile = otherUser?.profilePic;
 
 	if (isMessagesLoading) {
 		return (
@@ -68,7 +74,7 @@ const ChatContainer = () => {
 									src={
 										message.senderId === authUser._id
 											? authUser.profilePic || "/avatar.png"
-											: selectedUser.profilePic || "/avatar.png"
+											: otherUserProfile || "/avatar.png"
 									}
 									alt="profile pic"
 								/>
