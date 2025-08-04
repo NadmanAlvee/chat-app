@@ -38,6 +38,14 @@ export const useChatStore = create((set, get) => ({
 		}
 	},
 
+	updateConversation: (updatedConversation) => {
+		const { conversations } = get();
+		const updatedList = conversations.map((c) =>
+			c._id === updatedConversation._id ? updatedConversation : c
+		);
+		set({ conversations: updatedList });
+	},
+
 	getMessages: async (conversationId) => {
 		set({ isMessagesLoading: true });
 		try {

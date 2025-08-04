@@ -5,19 +5,25 @@ import {
 	logout,
 	updateProfile,
 	checkAuth,
+	updateGroupName,
+	updateGroupPicture,
 } from "../controllers/auth.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
-const route = Router();
+const router = Router();
 
-route.post("/signup", signup);
+router.post("/signup", signup);
 
-route.post("/login", login);
+router.post("/login", login);
 
-route.post("/logout", logout);
+router.post("/logout", logout);
 
-route.put("/update-profile", protectRoute, updateProfile);
+router.put("/update-profile", protectRoute, updateProfile);
 
-route.get("/check", protectRoute, checkAuth);
+router.get("/check", protectRoute, checkAuth);
 
-export default route;
+router.put("/update-group-name", protectRoute, updateGroupName);
+
+router.put("/update-group-picture", protectRoute, updateGroupPicture);
+
+export default router;

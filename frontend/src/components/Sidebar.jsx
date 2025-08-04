@@ -77,6 +77,8 @@ const Sidebar = () => {
 		}
 	};
 
+	useEffect(() => {}, [selectedConversation, conversations]); // not working
+
 	if (isConversationsLoading) return <SidebarSkeleton />;
 
 	return (
@@ -100,7 +102,7 @@ const Sidebar = () => {
 			{/* Search Input */}
 			{searchDivVisible && (
 				<div
-					className="fixed bg-base-300 w-full max-w-4xl text-center z-50 rounded-lg"
+					className="fixed bg-base-300 w-full max-w-4xl text-center z-50 rounded-lg border-2 p-8 shadow-2xl"
 					style={{
 						top: "50%",
 						left: "50%",
@@ -109,14 +111,14 @@ const Sidebar = () => {
 				>
 					<button>
 						<X
-							className="absolute top-2 right-2 size-5 text-red-500"
+							className="absolute top-2 right-2 size-8 text-red-500"
 							onClick={() => setSearchDivVisible(false)}
 						/>
 					</button>
 					{selectedUsersFromSearch.length > 0 && (
 						<div className="absolute bottom-0 w-full text-center">
 							<button
-								className="m-5 left-2/4 btn btn-outline btn-primary"
+								className="m-5 left-2/4 btn btn-outline btn-primary-content z-10"
 								onClick={handleActionFromSearchResult}
 							>
 								{selectedUsersFromSearch.length === 1
@@ -142,7 +144,7 @@ const Sidebar = () => {
 								<button
 									key={searchedUser._id}
 									onClick={() => handleSelectedUsersFromSearch(searchedUser)}
-									className={`max-w-80 p-3 flex items-center gap-3
+									className={`max-w-80 p-3 flex items-center gap-3 z-20
 												hover:border-2
                                  				hover:rounded-xl
 												hover:border-primary

@@ -74,8 +74,6 @@ export const sendMessage = async (req, res) => {
 		await newMessage.save();
 		await newMessage.populate("senderId", "-password");
 
-		console.log({ newMessage }); // debug
-
 		// emit new message
 		if (conversationId) {
 			io.to(conversationId).emit("newMessage", newMessage);
