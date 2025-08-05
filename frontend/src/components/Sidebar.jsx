@@ -15,7 +15,11 @@ const Sidebar = () => {
 		setSelectedConversation,
 		isConversationsLoading,
 		isCreatingNewConversation,
-		setIsCreatingNewConversation,
+		handleActionFromSearchResult,
+		selectedUsersFromSearch,
+		setSelectedUsersFromSearch,
+		searchDivVisible,
+		setSearchDivVisible,
 	} = useChatStore();
 
 	const { onlineUsers, authUser } = useAuthStore();
@@ -26,10 +30,7 @@ const Sidebar = () => {
 		getConversations();
 	}, [getUsers, getConversations, isCreatingNewConversation]);
 
-	const [searchDivVisible, setSearchDivVisible] = useState(false);
-
 	const [searchedUsers, setSearchedUsers] = useState([]);
-
 	const handleSearchInput = (e) => {
 		const searchTerm = e.target.value.trim();
 		if (searchTerm === "") {
@@ -42,8 +43,6 @@ const Sidebar = () => {
 		}
 	};
 
-	const [selectedUsersFromSearch, setSelectedUsersFromSearch] = useState([]);
-
 	const handleSelectedUsersFromSearch = (user) => {
 		selectedUsersFromSearch.includes(user)
 			? setSelectedUsersFromSearch(
@@ -52,40 +51,15 @@ const Sidebar = () => {
 			: setSelectedUsersFromSearch([...selectedUsersFromSearch, user]);
 	};
 
-	const handleActionFromSearchResult = async () => {
-		// create or select 1 to 1 chat
-		if (selectedUsersFromSearch.length === 1) {
-			await setIsCreatingNewConversation(true);
-			const { data } = await axiosInstance.get(
-				`/message/conversation/${selectedUsersFromSearch[0]._id}`
-			);
-			setSelectedConversation(data);
-			setSelectedUsersFromSearch([]);
-			setSearchDivVisible(false);
-			await setIsCreatingNewConversation(false);
-		}
-		// create or select group
-		if (selectedUsersFromSearch.length > 1) {
-			await setIsCreatingNewConversation(true);
-			const { data } = await axiosInstance.post("/message/conversation/group", {
-				selectedUsers: selectedUsersFromSearch,
-			});
-			setSelectedConversation(data);
-			setSelectedUsersFromSearch([]);
-			setSearchDivVisible(false);
-			await setIsCreatingNewConversation(false);
-		}
-	};
-
-	useEffect(() => {}, [selectedConversation, conversations]); // not working
+	useEffect(() => {}, [selectedConversation, conversations]);
 
 	if (isConversationsLoading) return <SidebarSkeleton />;
 
 	return (
-		<aside className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
+		<aside className="h-full w-72 max-[684px]:w-full border-r border-base-300 flex flex-col transition-all duration-200">
 			{/* Search - New Message */}
 			<button
-				className={`w-full p-5 flex items-center gap-3 hover:bg-base-300 transition-colors ${
+				className={`w-full p-5 flex items-center gap-3 hover:bg-base-300 transition-colors border-base-300 border-b ${
 					searchDivVisible ? "bg-primary text-primary-content" : ""
 				}`}
 				onClick={() => {
@@ -95,7 +69,7 @@ const Sidebar = () => {
 			>
 				<div className="flex items-center gap-2 cursor-pointer justify-center">
 					<UserPlus className="size-6" />
-					<span className="font-medium hidden lg:block">New Message</span>
+					<span className="font-medium block">New Message</span>
 				</div>
 			</button>
 
@@ -112,7 +86,10 @@ const Sidebar = () => {
 					<button>
 						<X
 							className="absolute top-2 right-2 size-8 text-red-500"
-							onClick={() => setSearchDivVisible(false)}
+							onClick={() => {
+								setSearchDivVisible(false);
+								setSearchedUsers([]);
+							}}
 						/>
 					</button>
 					{selectedUsersFromSearch.length > 0 && (
@@ -242,7 +219,7 @@ const Sidebar = () => {
 										}
         							`}
 						>
-							<div className="relative mx-auto lg:mx-0">
+							<div className="relative ">
 								<img
 									src={conversationImage}
 									alt={conversationName}
@@ -257,7 +234,7 @@ const Sidebar = () => {
 								)}
 							</div>
 
-							<div className="hidden lg:block text-left min-w-0">
+							<div className="block text-left min-w-0">
 								<div className="font-medium truncate">{conversationName}</div>
 								{!isGroup && (
 									<div className="text-sm text-zinc-400">

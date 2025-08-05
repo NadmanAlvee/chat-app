@@ -7,20 +7,30 @@ export const useChatStore = create((set, get) => ({
 	users: [],
 	messages: [],
 	conversations: [],
-	selectedConversation: null,
 	isConversationsLoading: false,
 	isMessagesLoading: false,
+	selectedConversation: null,
 	isCreatingNewConversation: false,
-	setIsCreatingNewConversation: (value) =>
-		set({ isCreatingNewConversation: value }),
+	selectedUsersFromSearch: [],
+	searchDivVisible: false,
 
+	// --- State setters ---
+	setSelectedUsersFromSearch: (users) =>
+		set({ selectedUsersFromSearch: users }),
+	setIsCreatingNewConversation: (bool) =>
+		set({ isCreatingNewConversation: bool }),
+	setSelectedConversation: (conversation) =>
+		set({ selectedConversation: conversation }),
+	setSearchDivVisible: (visible) => set({ searchDivVisible: visible }),
+
+	// --- Chat logic ---
 	getUsers: async () => {
 		set({ isConversationsLoading: true });
 		try {
 			const response = await axiosInstance.get("/message/getUsers");
 			set({ users: response.data });
 		} catch (error) {
-			toast.error(error.response.data.message);
+			toast.error(error.response?.data?.message || "Error fetching users");
 		} finally {
 			set({ isConversationsLoading: false });
 		}
@@ -32,7 +42,9 @@ export const useChatStore = create((set, get) => ({
 			const response = await axiosInstance.get("/message/getConversations");
 			set({ conversations: response.data });
 		} catch (error) {
-			toast.error(error.response.data.message);
+			toast.error(
+				error.response?.data?.message || "Error fetching conversations"
+			);
 		} finally {
 			set({ isConversationsLoading: false });
 		}
@@ -52,7 +64,7 @@ export const useChatStore = create((set, get) => ({
 			const response = await axiosInstance.get(`/message/${conversationId}`);
 			set({ messages: response.data });
 		} catch (error) {
-			toast.error(error.response.data.message);
+			toast.error(error.response?.data?.message || "Error fetching messages");
 		} finally {
 			set({ isMessagesLoading: false });
 		}
@@ -67,7 +79,7 @@ export const useChatStore = create((set, get) => ({
 					messageData
 				);
 				set({ messages: [...messages, response.data] });
-			} else throw new Error("Error sending message");
+			} else throw new Error("No selected conversation");
 		} catch (error) {
 			toast.error(error.response?.data?.message || error.message);
 		}
@@ -77,22 +89,17 @@ export const useChatStore = create((set, get) => ({
 		try {
 			const { selectedConversation } = get();
 			const socket = useAuthStore.getState().socket;
-
 			if (!socket || !selectedConversation?._id) return;
 
-			socket.off("newMessage"); // Prevent duplicate listeners
+			socket.off("newMessage"); // Avoid duplicate listeners
 
-			if (selectedConversation) {
-				// send join room event
-				socket.emit("joinRoom", selectedConversation._id);
-				// listen for message
-				socket.on("newMessage", (newMessage) => {
-					if (newMessage?.conversationId != selectedConversation?._id) return;
-					set({
-						messages: [...get().messages, newMessage],
-					});
-				});
-			} else throw new Error("Unknown error occured");
+			socket.emit("joinRoom", selectedConversation._id);
+			socket.on("newMessage", (newMessage) => {
+				if (newMessage?.conversationId !== selectedConversation._id) return;
+				set((state) => ({
+					messages: [...state.messages, newMessage],
+				}));
+			});
 		} catch (error) {
 			toast.error(error.response?.data?.message || error.message);
 		}
@@ -103,6 +110,44 @@ export const useChatStore = create((set, get) => ({
 		if (socket) socket.off("newMessage");
 	},
 
-	setSelectedConversation: (conversation) =>
-		set({ selectedConversation: conversation }),
+	// --- Unified Chat Handler ---
+	handleActionFromSearchResult: async () => {
+		const {
+			selectedUsersFromSearch,
+			setIsCreatingNewConversation,
+			setSelectedConversation,
+			setSelectedUsersFromSearch,
+			setSearchDivVisible,
+		} = get();
+
+		try {
+			await setIsCreatingNewConversation(true);
+
+			let data;
+			if (selectedUsersFromSearch.length === 1) {
+				const response = await axiosInstance.get(
+					`/message/conversation/${selectedUsersFromSearch[0]._id}`
+				);
+				data = response.data;
+			} else if (selectedUsersFromSearch.length > 1) {
+				const response = await axiosInstance.post(
+					"/message/conversation/group",
+					{
+						selectedUsers: selectedUsersFromSearch,
+					}
+				);
+				data = response.data;
+			} else {
+				throw new Error("Select at least one user");
+			}
+
+			setSelectedConversation(data);
+			setSelectedUsersFromSearch([]);
+			setSearchDivVisible(false);
+		} catch (error) {
+			toast.error(error.response?.data?.message || error.message);
+		} finally {
+			setIsCreatingNewConversation(false);
+		}
+	},
 }));

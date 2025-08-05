@@ -4,7 +4,13 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 
 const ChatHeader = () => {
-	const { selectedConversation, setSelectedConversation } = useChatStore();
+	const {
+		selectedConversation,
+		setSelectedConversation,
+		handleActionFromSearchResult,
+		selectedUsersFromSearch,
+		setSelectedUsersFromSearch,
+	} = useChatStore();
 	const {
 		authUser,
 		onlineUsers,
@@ -131,20 +137,21 @@ const ChatHeader = () => {
 			{/* Group information div */}
 			{groupInfoDivVisible && (
 				<div
-					className="fixed bg-base-300 w-full max-w-4xl text-center z-50 rounded-lg border-2 p-8 shadow-2xl"
+					className="fixed bg-base-300 w-full max-w-4xl max-[684px]:h-[70vh] text-center z-50 rounded-lg border-2 shadow-2xl"
 					style={{
 						top: "50%",
 						left: "50%",
 						transform: "translate(-50%, -50%)",
 					}}
 				>
-					<button>
+					{/* Make container relative so the close button is absolutely positioned inside it */}
+					<div className="relative max-h-[80vh] overflow-y-auto p-8">
 						<X
-							className="absolute top-2 right-2 size-8 text-red-500"
+							className="absolute top-4 right-4 size-8 text-red-500 cursor-pointer z-10"
 							onClick={() => setGroupInfoDivVisible(false)}
 						/>
-					</button>
-					<div className="bg-base-300 rounded-xl p-6 space-y-8">
+					</div>
+					<div className="bg-base-300 rounded-xl p-6 max-[684px]:p-1 space-y-8 max-[684px]:space-y-6">
 						{selectedConversation.isGroup && (
 							<div className="text-center">
 								<h1 className="text-2xl font-semibold ">
@@ -224,11 +231,11 @@ const ChatHeader = () => {
 							<div className="space-y-6">
 								<div className="space-y-1.5">
 									<form onSubmit={handleGroupNameChange}>
-										<label className="text-sm text-primary flex items-center justify-center gap-2">
+										<label className="text-sm flex items-center justify-center gap-2">
 											Group Name :
 											<input
 												type="text"
-												className="input px-4 py-2.5 bg-base-200 rounded-lg border"
+												className="input px-4 py-2.5 bg-base-200 rounded-lg border text-sm"
 												value={groupNameInput}
 												onChange={(e) => setGroupNameInput(e.target.value)}
 											/>
@@ -244,12 +251,73 @@ const ChatHeader = () => {
 								</div>
 							</div>
 						)}
+						{selectedConversation.isGroup && (
+							<div className="mt-6 bg-base-300 rounded-xl p-6 max-[684px]:p-3 max-w-full overflow-hidden">
+								<h2 className="text-lg font-bold mb-8">Group Members</h2>
+								<div className="overflow-y-auto max-h-80 max-[684px]:max-h-50 w-full flex flex-col items-start gap-5 max-[684px]:gap-2">
+									{selectedConversation?.participants.map((member) => (
+										<div className="flex flex-row" key={member._id}>
+											<div>
+												<div className="flex items-start justify-between gap-3 pb-3">
+													{/* Avatar */}
+													<div className="avatar">
+														<div className="size-10 rounded-full relative">
+															<img
+																src={member?.profilePic || "/avatar.png"}
+																alt={member?.fullname || "Unknown User"}
+															/>
+														</div>
+														{onlineUsers.includes(member?._id) ? (
+															<span
+																className="absolute bottom-0 right-0 size-3 bg-green-500 
+                                    								rounded-full ring-2 ring-zinc-900"
+															/>
+														) : (
+															<span
+																className="absolute bottom-0 right-0 size-3 bg-gray-400 
+                 													rounded-full ring-2 ring-zinc-800"
+															/>
+														)}
+													</div>
 
-						<div className="mt-6 bg-base-300 rounded-xl p-6">
-							{/* <h2 className="text-lg font-medium  mb-4">Group Information</h2>  */}
-							{/* // start here */}
-							<div className="space-y-3 text-sm">{/* Member list */}</div>
-						</div>
+													{/* User info */}
+													<div className="text-start">
+														<h3 className="font-bold ">
+															{member?.fullname || "Unknown User"}
+														</h3>
+
+														<p className="text-sm text-base-content/70">
+															{onlineUsers.includes(member?._id)
+																? "Online"
+																: "Offline"}
+														</p>
+													</div>
+												</div>
+											</div>
+											<div>
+												{selectedConversation?.admins?.includes(member._id) ? (
+													<p className="btn p-2 ml-5 bg-accent text-accent-content">
+														Admin
+													</p>
+												) : null}
+											</div>
+											<button
+												className="btn p-2 ml-5"
+												onClick={() => {
+													setSelectedUsersFromSearch([
+														...selectedUsersFromSearch,
+														member,
+													]);
+													handleActionFromSearchResult();
+												}}
+											>
+												Send Message
+											</button>
+										</div>
+									))}
+								</div>
+							</div>
+						)}
 					</div>
 				</div>
 			)}
