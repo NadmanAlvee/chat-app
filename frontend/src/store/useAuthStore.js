@@ -1,10 +1,13 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import { io } from "socket.io-client";
+import { useChatStore } from "./useChatStore";
 import toast from "react-hot-toast";
 
 const BASE_URL =
-	import.meta.env.MODE === "development" ? "http://localhost:5001/" : "/";
+	import.meta.env.MODE === "development"
+		? "http://localhost:5001"
+		: "http://103.152.106.133:5001";
 
 export const useAuthStore = create((set, get) => ({
 	authUser: null,
@@ -14,6 +17,7 @@ export const useAuthStore = create((set, get) => ({
 	isCheckingAuth: true,
 	onlineUsers: [],
 	socket: null,
+	isUpdatingGroupPicture: false,
 
 	checkAuth: async () => {
 		try {
@@ -71,14 +75,55 @@ export const useAuthStore = create((set, get) => ({
 	updateProfile: async (data) => {
 		set({ isUpdatingProfile: true });
 		try {
-			const res = await axiosInstance.put("/auth/update-profile", data);
-			set({ authUser: res.data });
+			const response = await axiosInstance.put("/auth/update-profile", data);
+			set({ authUser: response.data });
 			toast.success("Profile updated successfully");
 		} catch (error) {
 			console.log("error in update profile:", error);
 			toast.error(error.response.data.message);
 		} finally {
 			set({ isUpdatingProfile: false });
+		}
+	},
+	updateGroupPicture: async (data) => {
+		set({ isUpdatingGroupPicture: true });
+		try {
+			const { selectedConversation, groupPicture } = data;
+			if (!selectedConversation || !groupPicture) return;
+			const response = await axiosInstance.put("/auth/update-group-picture", {
+				selectedConversation,
+				groupPicture,
+			});
+			const { setSelectedConversation, updateConversation } =
+				useChatStore.getState();
+			setSelectedConversation(response.data);
+			updateConversation(response.data);
+
+			toast.success("Group picture updated successfully");
+		} catch (error) {
+			console.log("error in updating group picture:", error);
+			toast.error(error.response.data.message);
+		} finally {
+			set({ isUpdatingGroupPicture: false });
+		}
+	},
+	changeGroupName: async (data) => {
+		try {
+			const { selectedConversation, name } = data;
+			if (!selectedConversation || !name) return;
+			const response = await axiosInstance.put("/auth/update-group-name", {
+				selectedConversation,
+				name,
+			});
+			const { setSelectedConversation, updateConversation } =
+				useChatStore.getState();
+			setSelectedConversation(response.data);
+			updateConversation(response.data);
+
+			toast.success("Group name updated successfully");
+		} catch (error) {
+			console.log("error in updating group name:", error);
+			toast.error(error.response.data.message);
 		}
 	},
 

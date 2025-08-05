@@ -1,66 +1,52 @@
 import { config } from "dotenv";
+import path from "path";
 import { connectDB } from "../lib/mongodb.config.js";
 import User from "../models/user.model.js";
 
-// config({
-// 	path: "../../",
-// });
+config({ path: path.join(path.resolve(), "/backend", ".env") });
 
-const seedUsers = [
-	{
-		email: "james.anderson@example.com",
-		fullname: "James Anderson",
-		password: "123456",
-		profilePic: "https://randomuser.me/api/portraits/lego/1.jpg",
-	},
-	{
-		email: "william.clark@example.com",
-		fullname: "William Clark",
-		password: "123456",
-		profilePic: "https://randomuser.me/api/portraits/lego/2.jpg",
-	},
-	{
-		email: "benjamin.taylor@example.com",
-		fullname: "Benjamin Taylor",
-		password: "123456",
-		profilePic: "https://randomuser.me/api/portraits/lego/3.jpg",
-	},
-	{
-		email: "lucas.moore@example.com",
-		fullname: "Lucas Moore",
-		password: "123456",
-		profilePic: "https://randomuser.me/api/portraits/lego/4.jpg",
-	},
-	{
-		email: "henry.jackson@example.com",
-		fullname: "Henry Jackson",
-		password: "123456",
-		profilePic: "https://randomuser.me/api/portraits/lego/5.jpg",
-	},
-	{
-		email: "alexander.martin@example.com",
-		fullname: "Alexander Martin",
-		password: "123456",
-		profilePic: "https://randomuser.me/api/portraits/lego/6.jpg",
-	},
-	{
-		email: "daniel.rodriguez@example.com",
-		fullname: "Daniel Rodriguez",
-		password: "123456",
-		profilePic: "https://randomuser.me/api/portraits/lego/7.jpg",
-	},
-];
-
-const seedDatabase = async () => {
+const fetchProfilePic = async () => {
 	try {
-		await connectDB();
-
-		await User.insertMany(seedUsers);
-		console.log("Database seeded successfully");
+		const res = await fetch("https://api.nekosapi.com/v4/images/random");
+		let data = await res.json();
+		console.log(data);
+		return data[0].url;
 	} catch (error) {
-		console.error("Error seeding database:", error);
+		console.log("Error fetching image:", error.message);
+		return "https://defaultimage.com/default.jpg";
 	}
 };
 
-// Call the function
+const users = [
+	{ email: "kakashi@yahoo.com", fullname: "Kakashi Hatake" },
+	{ email: "naruto@yahoo.com", fullname: "Naruto Uzumaki" },
+	{ email: "sakura@yahoo.com", fullname: "Sakura Haruno" },
+	{ email: "sasuke@yahoo.com", fullname: "Sasuke Uchiha" },
+	{ email: "goku@yahoo.com", fullname: "Goku" },
+	{ email: "luffy@yahoo.com", fullname: "Monkey D. Luffy" },
+	{ email: "eren@yahoo.com", fullname: "Eren Yeager" },
+];
+
+const seedDatabase = async () => {
+	console.log("Seeding from:", path.join(path.resolve(), "/backend"));
+
+	try {
+		await connectDB();
+
+		const seedUsers = await Promise.all(
+			users.map(async (user) => ({
+				...user,
+				password:
+					"$2b$10$.SnLeU7vTfjMPXTL85TdsOAWfaIU3JvbgUGxHqjiGY.vPe8RAiR8.",
+				profilePic: await fetchProfilePic(),
+			}))
+		);
+
+		await User.insertMany(seedUsers);
+		console.log("✅ Database seeded successfully");
+	} catch (error) {
+		console.error("❌ Error seeding database:", error);
+	}
+};
+
 seedDatabase();

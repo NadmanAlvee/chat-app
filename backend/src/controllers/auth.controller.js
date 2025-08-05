@@ -1,5 +1,6 @@
 import bcryptjs from "bcryptjs";
 import User from "../models/user.model.js";
+import Conversation from "../models/conversation.model.js";
 import { generateToken } from "../lib/utils.lib.js";
 import cloudinary from "../lib/cloudinary.config.js";
 
@@ -99,6 +100,45 @@ export const updateProfile = async (req, res) => {
 		res.status(500).json({ message: "Internal Server Error" });
 	}
 };
+
+export const updateGroupName = async (req, res) => {
+	try {
+		const { selectedConversation, name } = req.body;
+		if (!selectedConversation || !name) return;
+		const response = await Conversation.findByIdAndUpdate(
+			selectedConversation?._id,
+			{ name: name },
+			{ new: true }
+		);
+		await response.populate("participants", "-password");
+		res.status(200).json(response);
+	} catch (error) {
+		console.log("Error in updateGroupName controller", error.message);
+		res.status(500).json({ message: "Internal Server Error" });
+	}
+};
+
+export const updateGroupPicture = async (req, res) => {
+	try {
+		const { selectedConversation, groupPicture } = req.body;
+
+		if (!selectedConversation || !groupPicture) return;
+		const uploadResponse = await cloudinary.uploader.upload(groupPicture);
+		const response = await Conversation.findByIdAndUpdate(
+			selectedConversation._id,
+			{
+				groupPicture: uploadResponse.secure_url,
+			},
+			{ new: true }
+		);
+		await response.populate("participants", "-password");
+		res.status(200).json(response);
+	} catch (error) {
+		console.log("Error in updateGroupPicture controller", error.message);
+		res.status(500).json({ message: "Internal Server Error" });
+	}
+};
+
 export const checkAuth = (req, res) => {
 	try {
 		res.status(200).json(req.user);

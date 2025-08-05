@@ -7,7 +7,8 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
 	cors: {
-		origin: ["http://localhost:5173"],
+		origin: ["http://localhost:5173", "http://103.152.106.133:5001"],
+		credentials: true,
 	},
 });
 
@@ -25,6 +26,11 @@ io.on("connection", (socket) => {
 	if (userID) userSocketMap[userID] = socket.id;
 
 	io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+	socket.on("joinRoom", (conversationId) => {
+		socket.join(conversationId);
+		console.log(`User ${socket.id} joined room ${conversationId}`);
+	});
 
 	socket.on("disconnect", () => {
 		console.log("A user disconnected ", socket.id);

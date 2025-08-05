@@ -1,21 +1,33 @@
 import { Router } from "express";
 
 import {
-	getUsersForSidebar,
+	getAllUsers,
+	getConversationsForSidebar,
 	getMessages,
 	sendMessage,
+	getOrCreateConversation,
+	getOrCreateGroupchat,
 } from "../controllers/message.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
 const router = Router();
 
-// get all users for the sidebar
-router.get("/users", protectRoute, getUsersForSidebar);
+// get all Conversations for the sidebar
+router.get("/getConversations", protectRoute, getConversationsForSidebar);
+
+// get all users
+router.get("/getUsers", protectRoute, getAllUsers);
+
+// get or create a 1 to 1 conversation
+router.get("/conversation/:id", protectRoute, getOrCreateConversation);
+
+// get or create a 1 to 1 conversation
+router.post("/conversation/group", protectRoute, getOrCreateGroupchat);
 
 // get messages
-router.get("/:id", protectRoute, getMessages);
+router.get("/:conversationId", protectRoute, getMessages);
 
 // send messages
-router.post("/send/:id", protectRoute, sendMessage);
+router.post("/send/:conversationId", protectRoute, sendMessage);
 
 export default router;

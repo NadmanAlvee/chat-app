@@ -3,26 +3,34 @@ import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
 import { UserPlus, X } from "lucide-react";
+import { axiosInstance } from "../lib/axios";
 
 const Sidebar = () => {
-	const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } =
-		useChatStore();
+	const {
+		getUsers,
+		users,
+		getConversations,
+		conversations,
+		selectedConversation,
+		setSelectedConversation,
+		isConversationsLoading,
+		isCreatingNewConversation,
+		handleActionFromSearchResult,
+		selectedUsersFromSearch,
+		setSelectedUsersFromSearch,
+		searchDivVisible,
+		setSearchDivVisible,
+	} = useChatStore();
 
-	const { onlineUsers } = useAuthStore();
+	const { onlineUsers, authUser } = useAuthStore();
 	const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
 	useEffect(() => {
 		getUsers();
-	}, [getUsers]);
-
-	const filteredUsers = showOnlineOnly
-		? users.filter((user) => onlineUsers.includes(user._id))
-		: users;
-
-	const [searchDivVisible, setSearchDivVisible] = useState(false);
+		getConversations();
+	}, [getUsers, getConversations, isCreatingNewConversation]);
 
 	const [searchedUsers, setSearchedUsers] = useState([]);
-
 	const handleSearchInput = (e) => {
 		const searchTerm = e.target.value.trim();
 		if (searchTerm === "") {
@@ -35,8 +43,6 @@ const Sidebar = () => {
 		}
 	};
 
-	const [selectedUsersFromSearch, setSelectedUsersFromSearch] = useState([]);
-
 	const handleSelectedUsersFromSearch = (user) => {
 		selectedUsersFromSearch.includes(user)
 			? setSelectedUsersFromSearch(
@@ -45,40 +51,32 @@ const Sidebar = () => {
 			: setSelectedUsersFromSearch([...selectedUsersFromSearch, user]);
 	};
 
-	const handleActionFromSearchResult = () => {
-		console.log({ selectedUsersFromSearch });
+	useEffect(() => {}, [selectedConversation, conversations]);
 
-		if (selectedUsersFromSearch.length === 1) {
-			setSelectedUser(selectedUsersFromSearch[0]);
-			setSelectedUsersFromSearch([]);
-			setSearchDivVisible(false);
-		}
-	};
-
-	if (isUsersLoading) return <SidebarSkeleton />;
+	if (isConversationsLoading) return <SidebarSkeleton />;
 
 	return (
-		<aside className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
+		<aside className="h-full w-72 max-[684px]:w-full border-r border-base-300 flex flex-col transition-all duration-200">
 			{/* Search - New Message */}
 			<button
-				className={`w-full p-5 flex items-center gap-3 hover:bg-base-300 transition-colors ${
+				className={`w-full p-5 flex items-center gap-3 hover:bg-base-300 transition-colors border-base-300 border-b ${
 					searchDivVisible ? "bg-primary text-primary-content" : ""
 				}`}
 				onClick={() => {
-					setSelectedUser(null);
+					setSelectedConversation(null);
 					setSearchDivVisible(!searchDivVisible);
 				}}
 			>
 				<div className="flex items-center gap-2 cursor-pointer justify-center">
 					<UserPlus className="size-6" />
-					<span className="font-medium hidden lg:block">New Message</span>
+					<span className="font-medium block">New Message</span>
 				</div>
 			</button>
 
 			{/* Search Input */}
 			{searchDivVisible && (
 				<div
-					className="fixed bg-base-300 w-full max-w-4xl text-center z-50 rounded-lg"
+					className="fixed bg-base-300 w-full max-w-4xl text-center z-50 rounded-lg border-2 p-8 shadow-2xl"
 					style={{
 						top: "50%",
 						left: "50%",
@@ -87,14 +85,17 @@ const Sidebar = () => {
 				>
 					<button>
 						<X
-							className="absolute top-2 right-2 size-5 text-red-500"
-							onClick={() => setSearchDivVisible(false)}
+							className="absolute top-2 right-2 size-8 text-red-500"
+							onClick={() => {
+								setSearchDivVisible(false);
+								setSearchedUsers([]);
+							}}
 						/>
 					</button>
 					{selectedUsersFromSearch.length > 0 && (
 						<div className="absolute bottom-0 w-full text-center">
 							<button
-								className="m-5 left-2/4 btn btn-outline btn-primary"
+								className="m-5 left-2/4 btn btn-outline btn-primary-content z-10"
 								onClick={handleActionFromSearchResult}
 							>
 								{selectedUsersFromSearch.length === 1
@@ -120,7 +121,7 @@ const Sidebar = () => {
 								<button
 									key={searchedUser._id}
 									onClick={() => handleSelectedUsersFromSearch(searchedUser)}
-									className={`max-w-80 p-3 flex items-center gap-3
+									className={`max-w-80 p-3 flex items-center gap-3 z-20
 												hover:border-2
                                  				hover:rounded-xl
 												hover:border-primary
@@ -169,7 +170,7 @@ const Sidebar = () => {
 			)}
 
 			{/* show online users toggle */}
-			<div className="hidden lg:flex  border-b border-base-300 w-full p-5">
+			{/* <div className="hidden lg:flex  border-b border-base-300 w-full p-5">
 				<div className="items-center gap-2">
 					<label className="cursor-pointer flex items-center gap-2">
 						<input
@@ -184,56 +185,73 @@ const Sidebar = () => {
 						({onlineUsers.length - 1 > 0 ? onlineUsers.length - 1 : 0} online)
 					</span>
 				</div>
-			</div>
+			</div> */}
+
+			{/* Sidebar conversations */}
 			<div className="overflow-y-auto w-full">
-				{filteredUsers.map((user) => (
-					<button
-						key={user._id}
-						onClick={() => {
-							setSearchDivVisible(false);
-							setSelectedUser(user);
-						}}
-						className={`
-                                w-full p-3 flex items-center gap-3
-                                hover:bg-base-300 transition-colors
-                                ${
-																	selectedUser?._id === user._id
-																		? "bg-base-300 ring-1 ring-base-300"
-																		: ""
-																}
-                            `}
-					>
-						<div className="relative mx-auto lg:mx-0">
-							<img
-								src={user.profilePic || "/avatar.png"}
-								alt={user.fullname}
-								className="size-12 object-cover rounded-full"
-							/>
-							{onlineUsers?.includes(user._id) ? (
-								<span
-									className="absolute bottom-0 right-0 size-3 bg-green-500 
-                                    rounded-full ring-2 ring-zinc-900"
-								/>
-							) : (
-								<span
-									className="absolute bottom-0 right-0 size-3 bg-gray-400 
-                                    rounded-full ring-2 ring-zinc-800"
-								/>
-							)}
-						</div>
+				{conversations.map((conversation) => {
+					const isGroup = conversation.isGroup;
+					const otherUser = conversation.participants.find(
+						(user) => user._id.toString() !== authUser._id.toString()
+					);
 
-						{/* User info - only visible on larger screens */}
-						<div className="hidden lg:block text-left min-w-0">
-							<div className="font-medium truncate">{user.fullname}</div>
-							<div className="text-sm text-zinc-400">
-								{onlineUsers.includes(user._id) ? "Online" : "Offline"}
+					const conversationImage = isGroup
+						? conversation.groupPicture || "/group-avatar.png"
+						: otherUser?.profilePic || "/avatar.png";
+					const conversationName = isGroup
+						? conversation.name || "Unnamed Group"
+						: otherUser?.fullname || "Unknown";
+
+					return (
+						<button
+							key={conversation._id}
+							onClick={() => {
+								setSearchDivVisible(false);
+								setSelectedConversation(conversation);
+							}}
+							className={`
+										w-full p-3 flex items-center gap-3
+										hover:bg-base-300 transition-colors
+										${
+											selectedConversation?._id === conversation._id
+												? "bg-base-300 ring-1 ring-base-300"
+												: ""
+										}
+        							`}
+						>
+							<div className="relative ">
+								<img
+									src={conversationImage}
+									alt={conversationName}
+									className="size-12 object-cover rounded-full"
+								/>
+								{!isGroup && onlineUsers.includes(otherUser?._id) ? (
+									<span className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full ring-2 ring-zinc-900" />
+								) : (
+									!isGroup && (
+										<span className="absolute bottom-0 right-0 size-3 bg-gray-400 rounded-full ring-2 ring-zinc-800" />
+									)
+								)}
 							</div>
-						</div>
-					</button>
-				))}
 
-				{filteredUsers.length === 0 && (
-					<div className="text-center text-zinc-500 py-4">No online users</div>
+							<div className="block text-left min-w-0">
+								<div className="font-medium truncate">{conversationName}</div>
+								{!isGroup && (
+									<div className="text-sm text-zinc-400">
+										{onlineUsers.includes(otherUser?._id)
+											? "Online"
+											: "Offline"}
+									</div>
+								)}
+							</div>
+						</button>
+					);
+				})}
+
+				{conversations.length === 0 && (
+					<div className="text-center text-zinc-500 py-4">
+						No Conversation Found
+					</div>
 				)}
 			</div>
 		</aside>
