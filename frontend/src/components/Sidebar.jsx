@@ -3,7 +3,6 @@ import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton";
 import { UserPlus, X } from "lucide-react";
-import { axiosInstance } from "../lib/axios";
 
 const Sidebar = () => {
 	const {
@@ -32,7 +31,7 @@ const Sidebar = () => {
 
 	const [searchedUsers, setSearchedUsers] = useState([]);
 	const handleSearchInput = (e) => {
-		const searchTerm = e.target.value.trim();
+		const searchTerm = e.target.value.trim().toLowerCase();
 		if (searchTerm === "") {
 			setSearchedUsers([]);
 			return;

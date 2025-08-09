@@ -7,9 +7,12 @@ import ChatContainer from "../components/ChatContainer";
 function HomePage() {
 	const { selectedConversation } = useChatStore();
 	return (
-		<div className="h-screen bg-base-200">
+		<div className="h-screen bg-none z-10 relative">
 			<div className="flex items-center justify-center pt-20 px-4">
-				<div className="bg-base-100 rounded-lg shadow-cl w-full max-w-6xl h-[calc(100vh-8rem)] max-[684px]:h-[75vh]">
+				<div
+					className="rounded-lg shadow-cl w-full max-w-6xl h-[calc(100vh-8rem)] max-[684px]:h-[75vh]"
+					style={{ backdropFilter: "blur(70px)" }}
+				>
 					{!selectedConversation ? (
 						<>
 							<div className="flex h-full rounded-lg overflow-hidden">
@@ -27,7 +30,7 @@ function HomePage() {
 								<div className="max-[684px]:hidden">
 									<Sidebar />
 								</div>
-								<div className="flex-1 flex  flex-col overflow-auto">
+								<div className="flex-1 flex flex-col overflow-auto">
 									<ChatContainer />
 								</div>
 							</div>

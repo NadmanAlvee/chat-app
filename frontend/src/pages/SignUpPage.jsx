@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import {
 	Eye,
@@ -11,8 +11,6 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-
-import AuthImagePattern from "../components/AuthImagePattern";
 import ErrorDisplay from "../components/ErrorDisplay";
 
 function SignUpPage() {
@@ -34,10 +32,10 @@ function SignUpPage() {
 	};
 
 	return (
-		<div className="min-h-screen grid lg:grid-cols-2">
-			{/* left side */}
-			<div className="flex flex-col justify-center items-center p-6 sm:p-12">
-				<div className="w-full max-w-md space-y-8">
+		<div className="h-screen flex items-center justify-center relative z-10">
+			{/* Sign up */}
+			<div className="flex flex-col rounded-3xl justify-center items-center p-6 sm:p-10 sm:bg-black/5">
+				<div className="w-full max-w-md space-y-8 sm:w-80">
 					{/* Logo */}
 					<div className="text-center mb-8">
 						<div className="flex flex-col items-center gap-2 group">
@@ -65,6 +63,7 @@ function SignUpPage() {
 									className={`input input-bordered w-full pl-10 `}
 									type="text"
 									placeholder="John Doe"
+									style={{ background: "none" }}
 									{...register("name", {
 										required: { value: true, message: "Name is required!" },
 										minLength: { value: 3, message: "Minimum length 3!" },
@@ -92,6 +91,7 @@ function SignUpPage() {
 									type="email"
 									className={`input input-bordered w-full pl-10 `}
 									placeholder="you@example.com"
+									style={{ background: "none" }}
 									{...register("email", {
 										required: { value: true, message: "Email is required!" },
 										pattern: {
@@ -117,6 +117,7 @@ function SignUpPage() {
 									type={showPassword ? "text" : "password"}
 									className={`input input-bordered w-full pl-10 `}
 									placeholder="••••••••"
+									style={{ background: "none" }}
 									{...register("password", {
 										required: {
 											value: true,
@@ -131,13 +132,13 @@ function SignUpPage() {
 
 								<button
 									type="button"
-									className="absolute inset-y-0 right-0 pr-3 flex items-center"
+									className="absolute inset-y-0 right-0 pr-3 flex items-center z-20 cursor-pointer"
 									onClick={() => setShowPassword(!showPassword)}
 								>
 									{showPassword ? (
-										<EyeOff className="size-5 text-base-content/40 z-10" />
+										<EyeOff className="size-5 text-base-content/40" />
 									) : (
-										<Eye className="size-5 text-base-content/40 z-10" />
+										<Eye className="size-5 text-base-content/40" />
 									)}
 								</button>
 							</div>
@@ -170,13 +171,6 @@ function SignUpPage() {
 					</div>
 				</div>
 			</div>
-
-			{/* right side */}
-
-			<AuthImagePattern
-				title="Join our community"
-				subtitle="Connect with friends, share moments, and stay in touch with your loved ones."
-			/>
 		</div>
 	);
 }

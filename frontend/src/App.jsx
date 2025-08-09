@@ -8,6 +8,8 @@ import { createMainRouter } from "./routes/routes";
 import { useAuthStore } from "./store/useAuthStore";
 import { useThemeStore } from "./store/useThemeStore";
 
+import AuroraBackground from "./components/AuroraBackground";
+
 export const App = () => {
 	const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
 	const { theme } = useThemeStore();
@@ -28,6 +30,8 @@ export const App = () => {
 
 	return (
 		<div data-theme={theme}>
+			<AuroraBackground />
+
 			<RouterProvider router={router} />
 			<Toaster />
 		</div>

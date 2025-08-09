@@ -3,7 +3,6 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useForm } from "react-hook-form";
 import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
-import AuthImagePattern from "../components/AuthImagePattern";
 import ErrorDisplay from "../components/ErrorDisplay";
 
 function LoginPage() {
@@ -24,10 +23,10 @@ function LoginPage() {
 	};
 
 	return (
-		<div className="h-screen grid lg:grid-cols-2">
-			{/* Left Side - Form */}
-			<div className="flex flex-col justify-center items-center p-6 sm:p-12">
-				<div className="w-full max-w-md space-y-8">
+		<div className="h-screen flex items-center justify-center relative z-10">
+			{/* Form */}
+			<div className="flex flex-col rounded-3xl justify-center items-center p-6 sm:p-10 sm:bg-black/5">
+				<div className="w-full max-w-md space-y-8 sm:w-80">
 					{/* Logo */}
 					<div className="text-center mb-8">
 						<div className="flex flex-col items-center gap-2 group">
@@ -57,6 +56,7 @@ function LoginPage() {
 									type="email"
 									className={`input input-bordered w-full pl-10`}
 									placeholder="you@example.com"
+									style={{ background: "none" }}
 									{...register("email", {
 										required: {
 											value: true,
@@ -85,6 +85,7 @@ function LoginPage() {
 									type={showPassword ? "text" : "password"}
 									className={`input input-bordered w-full pl-10 `}
 									placeholder="••••••••"
+									style={{ background: "none" }}
 									{...register("password", {
 										required: {
 											value: true,
@@ -94,7 +95,7 @@ function LoginPage() {
 								/>
 								<button
 									type="button"
-									className="absolute inset-y-0 right-0 pr-3 flex items-center"
+									className="absolute inset-y-0 right-0 pr-3 flex items-center z-20 cursor-pointer"
 									onClick={() => setShowPassword(!showPassword)}
 								>
 									{showPassword ? (
@@ -133,14 +134,6 @@ function LoginPage() {
 					</div>
 				</div>
 			</div>
-
-			{/* Right Side - Image/Pattern */}
-			<AuthImagePattern
-				title={"Welcome back!"}
-				subtitle={
-					"Sign in to continue your conversations and catch up with your messages."
-				}
-			/>
 		</div>
 	);
 }
