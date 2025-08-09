@@ -1,13 +1,19 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
+import dotenv from "dotenv";
+import path from "path";
+const __dirname = path.resolve();
+dotenv.config({
+	path: path.resolve(__dirname, "../.env"),
+});
 
 const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
 	cors: {
-		origin: ["http://localhost:5173", "http://103.152.106.133:5001"],
+		origin: JSON.parse(process.env.ALLOWED_ORIGINS),
 		credentials: true,
 	},
 });
