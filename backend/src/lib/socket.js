@@ -13,7 +13,8 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
 	cors: {
-		origin: JSON.parse(process.env.ALLOWED_ORIGINS),
+		// origin: JSON.parse(process.env.ALLOWED_ORIGINS),
+		origin: "*",
 		credentials: true,
 	},
 });
@@ -26,8 +27,13 @@ export function getRecieverSocketId(userId) {
 const userSocketMap = {};
 
 io.on("connection", (socket) => {
-	console.log("A user connected ", socket.id);
 	const userID = socket.handshake.query.userId;
+	const Username = socket.handshake.query.username;
+	const Address = socket.handshake.address;
+
+	console.log(
+		`A user connected. ID: ${socket.id} Address: ${Address} Name: ${Username}`
+	);
 
 	if (userID) userSocketMap[userID] = socket.id;
 
@@ -35,11 +41,15 @@ io.on("connection", (socket) => {
 
 	socket.on("joinRoom", (conversationId) => {
 		socket.join(conversationId);
-		console.log(`User ${socket.id} joined room ${conversationId}`);
+		console.log(
+			`User ${socket.id} Address: ${socket.handshake.address} joined room ${conversationId}`
+		);
 	});
 
 	socket.on("disconnect", () => {
-		console.log("A user disconnected ", socket.id);
+		console.log(
+			`A user disconnected. ID: ${socket.id} Address: ${Address} Name: ${Username}`
+		);
 		delete userSocketMap[userID];
 		io.emit("getOnlineUsers", Object.keys(userSocketMap));
 	});
