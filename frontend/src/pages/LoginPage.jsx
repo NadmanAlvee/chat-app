@@ -6,136 +6,136 @@ import { Link } from "react-router-dom";
 import ErrorDisplay from "../components/ErrorDisplay";
 
 function LoginPage() {
-	const [showPassword, setShowPassword] = useState();
-	const { isLoggingIn, login } = useAuthStore();
+  const [showPassword, setShowPassword] = useState();
+  const { isLoggingIn, login } = useAuthStore();
 
-	const {
-		register,
-		handleSubmit, // validation function
-		formState: { errors },
-	} = useForm();
-	const onSubmit = (data) => {
-		const trimmedData = {
-			email: data.email.trim(),
-			password: data.password.trim(),
-		};
-		login(trimmedData);
-	};
+  const {
+    register,
+    handleSubmit, // validation function
+    formState: { errors },
+  } = useForm();
+  const onSubmit = (data) => {
+    const trimmedData = {
+      email: data.email.trim(),
+      password: data.password.trim(),
+    };
+    login(trimmedData);
+  };
 
-	return (
-		<div className="h-screen flex items-center justify-center relative z-10">
-			{/* Form */}
-			<div className="flex flex-col rounded-3xl justify-center items-center p-6 sm:p-10 sm:bg-black/5">
-				<div className="w-full max-w-md space-y-8 sm:w-80">
-					{/* Logo */}
-					<div className="text-center mb-8">
-						<div className="flex flex-col items-center gap-2 group">
-							<div
-								className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20
+  return (
+    <div className="h-screen flex items-center justify-center relative z-10">
+      {/* Form */}
+      <div className="flex flex-col rounded-3xl justify-center items-center p-6 sm:p-10 sm:bg-black/5">
+        <div className="w-full max-w-md space-y-8 sm:w-80">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <div className="flex flex-col items-center gap-2 group">
+              <div
+                className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20
               transition-colors"
-							>
-								<MessageSquare className="w-6 h-6 text-primary" />
-							</div>
-							<h1 className="text-2xl font-bold mt-2">Welcome Back</h1>
-							<p className="text-base-content/60">Sign in to your account</p>
-						</div>
-					</div>
+              >
+                <MessageSquare className="w-6 h-6 text-primary" />
+              </div>
+              <h1 className="text-2xl font-bold mt-2">Welcome Back</h1>
+              <p className="text-base-content/60">Sign in to your account</p>
+            </div>
+          </div>
 
-					{/* Form */}
-					<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-						<div className="form-control">
-							<label className="label" htmlFor="email">
-								<span className="label-text font-medium">Email</span>
-							</label>
-							<div className="relative">
-								<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-									<Mail className="h-5 w-5 text-base-content/40 z-10" />
-								</div>
-								<input
-									id="email"
-									type="email"
-									className={`input input-bordered w-full pl-10`}
-									placeholder="you@example.com"
-									style={{ background: "none" }}
-									{...register("email", {
-										required: {
-											value: true,
-											message: "Email is required",
-										},
-										pattern: {
-											value: /\S+@\S+\.\S+/,
-											message: "Invalid email format",
-										},
-									})}
-								/>
-							</div>
-							<ErrorDisplay error={errors.email} />
-						</div>
+          {/* Form */}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="form-control">
+              <label className="label" htmlFor="email">
+                <span className="label-text font-medium">Email</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-base-content/40 z-10" />
+                </div>
+                <input
+                  id="email"
+                  type="email"
+                  className={`input input-bordered w-full pl-10`}
+                  placeholder="you@example.com"
+                  style={{ background: "none" }}
+                  {...register("email", {
+                    required: {
+                      value: true,
+                      message: "Email is required",
+                    },
+                    pattern: {
+                      value: /\S+@\S+\.\S+/,
+                      message: "Invalid email format",
+                    },
+                  })}
+                />
+              </div>
+              <ErrorDisplay error={errors.email} />
+            </div>
 
-						<div className="form-control">
-							<label className="label" htmlFor="password">
-								<span className="label-text font-medium">Password</span>
-							</label>
-							<div className="relative">
-								<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-									<Lock className="h-5 w-5 text-base-content/40 z-10" />
-								</div>
-								<input
-									id="password"
-									type={showPassword ? "text" : "password"}
-									className={`input input-bordered w-full pl-10 `}
-									placeholder="••••••••"
-									style={{ background: "none" }}
-									{...register("password", {
-										required: {
-											value: true,
-											message: "Password is required!",
-										},
-									})}
-								/>
-								<button
-									type="button"
-									className="absolute inset-y-0 right-0 pr-3 flex items-center z-20 cursor-pointer"
-									onClick={() => setShowPassword(!showPassword)}
-								>
-									{showPassword ? (
-										<EyeOff className="h-5 w-5 text-base-content/40" />
-									) : (
-										<Eye className="h-5 w-5 text-base-content/40" />
-									)}
-								</button>
-							</div>
-							<ErrorDisplay error={errors.password} />
-						</div>
+            <div className="form-control">
+              <label className="label" htmlFor="password">
+                <span className="label-text font-medium">Password</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-base-content/40 z-10" />
+                </div>
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  className={`input input-bordered w-full pl-10 `}
+                  placeholder="••••••••"
+                  style={{ background: "none" }}
+                  {...register("password", {
+                    required: {
+                      value: true,
+                      message: "Password is required!",
+                    },
+                  })}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center z-20 cursor-pointer"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-base-content/40" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-base-content/40" />
+                  )}
+                </button>
+              </div>
+              <ErrorDisplay error={errors.password} />
+            </div>
 
-						<button
-							type="submit"
-							className="btn btn-primary w-full"
-							disabled={isLoggingIn}
-						>
-							{isLoggingIn ? (
-								<>
-									<Loader2 className="h-5 w-5 animate-spin" />
-									Loading...
-								</>
-							) : (
-								"Sign in"
-							)}
-						</button>
-					</form>
+            <button
+              type="submit"
+              className="btn btn-primary w-full"
+              disabled={isLoggingIn}
+            >
+              {isLoggingIn ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                "Sign in"
+              )}
+            </button>
+          </form>
 
-					<div className="text-center">
-						<p className="text-base-content/60">
-							Don&apos;t have an account?{" "}
-							<Link to="/signup" className="link link-primary">
-								Create account
-							</Link>
-						</p>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+          <div className="text-center">
+            <p className="text-base-content/60">
+              Don&apos;t have an account?{" "}
+              <Link to="/signup" className="link link-primary">
+                Create account
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default LoginPage;
