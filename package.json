@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "yarn --cwd backend install && yarn --cwd frontend install && yarn --cwd frontend build",
+    "build": "yarn --cwd backend install && yarn --cwd frontend install --production=false && yarn --cwd frontend build",
     "start": "yarn --cwd backend start"
   },
   "keywords": [],
